@@ -231,10 +231,34 @@ func (s *stateObject) GetState(key common.Hash) common.Hash {
 	return s.GetCommittedState(key)
 }
 
+// GetState query the current transient state (including dirty state)
+func (s *stateObject) GetTransientState(key common.Hash) common.Hash {
+	if value, dirty := s.dirtyStorage[key]; dirty {
+		return value
+	}
+	return s.GetCommittedState(key)
+}
+
 // SetState sets the contract state
 func (s *stateObject) SetState(key common.Hash, value common.Hash) {
 	// If the new value is the same as old, don't set
 	prev := s.GetState(key)
+	if prev == value {
+		return
+	}
+	// New value is different, update and journal the change
+	s.db.journal.append(storageChange{
+		account:  &s.address,
+		key:      key,
+		prevalue: prev,
+	})
+	s.setState(key, value)
+}
+
+// SetTransientState sets the contract transient state
+func (s *stateObject) SetTransientState(key common.Hash, value common.Hash) {
+	// If the new value is the same as old, don't set
+	prev := s.GetTransientState(key)
 	if prev == value {
 		return
 	}

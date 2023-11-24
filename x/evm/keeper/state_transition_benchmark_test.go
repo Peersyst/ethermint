@@ -148,12 +148,12 @@ func newNativeMessage(
 
 	msg, baseFee, err := newEthMsgTx(nonce, blockHeight, address, cfg, krSigner, ethSigner, txType, data, accessList)
 	if err != nil {
-		return nil, err
+		return core.Message{}, err
 	}
 
 	m, err := msg.AsMessage(msgSigner, baseFee)
 	if err != nil {
-		return nil, err
+		return core.Message{}, err
 	}
 
 	return m, nil

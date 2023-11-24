@@ -26,6 +26,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/params"
 )
 
 // revision is the identifier of a version of state.
@@ -185,7 +186,15 @@ func (s *StateDB) GetState(addr common.Address, hash common.Hash) common.Hash {
 	return common.Hash{}
 }
 
-// GetCommittedState retrieves a value from the given account's committed storage trie.
+func (s *StateDB) GetTransientState(addr common.Address, key common.Hash) common.Hash {
+	stateObject := s.getStateObject(addr)
+	if stateObject != nil {
+		return stateObject.GetTransientState(key)
+	}
+	return common.Hash{}
+}
+
+// GetCommittedState retrieves a value from the given account's committed storage trie.Get
 func (s *StateDB) GetCommittedState(addr common.Address, hash common.Hash) common.Hash {
 	stateObject := s.getStateObject(addr)
 	if stateObject != nil {
@@ -342,6 +351,14 @@ func (s *StateDB) SetState(addr common.Address, key, value common.Hash) {
 	}
 }
 
+// SetTransientState sets the contract transient state.
+func (s *StateDB) SetTransientState(addr common.Address, key, value common.Hash) {
+	stateObject := s.getOrNewStateObject(addr)
+	if stateObject != nil {
+		stateObject.SetTransientState(key, value)
+	}
+}
+
 // Suicide marks the given account as suicided.
 // This clears the account balance.
 //
@@ -387,6 +404,10 @@ func (s *StateDB) PrepareAccessList(sender common.Address, dst *common.Address, 
 			s.AddSlotToAccessList(el.Address, key)
 		}
 	}
+}
+
+func (s *StateDB) Prepare(rules params.Rules, sender, coinbase common.Address, dest *common.Address, precompiles []common.Address, txAccesses ethtypes.AccessList) {
+	s.PrepareAccessList(sender, dest, precompiles, txAccesses)
 }
 
 // AddAddressToAccessList adds the given address to the access list

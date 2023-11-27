@@ -16,6 +16,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/tests"
 	"github.com/evmos/ethermint/x/evm/statedb"
@@ -712,9 +713,15 @@ func (suite *KeeperTestSuite) TestPrepareAccessList() {
 		{Address: tests.GenerateAddress(), StorageKeys: []common.Hash{common.BytesToHash([]byte("key"))}},
 		{Address: tests.GenerateAddress(), StorageKeys: []common.Hash{common.BytesToHash([]byte("key1"))}},
 	}
+	rules := params.Rules{
+		IsBerlin: true,
+		IsLondon: true,
+	}
+	coinbase := tests.GenerateAddress()
+
 
 	vmdb := suite.StateDB()
-	vmdb.PrepareAccessList(suite.address, &dest, precompiles, accesses)
+	vmdb.Prepare(rules, suite.address, coinbase, &dest, precompiles, accesses)
 
 	suite.Require().True(vmdb.AddressInAccessList(suite.address))
 	suite.Require().True(vmdb.AddressInAccessList(dest))

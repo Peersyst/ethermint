@@ -441,6 +441,7 @@ func (suite *StateDBTestSuite) TestAccessList() {
 				Address:     address3,
 				StorageKeys: []common.Hash{value1},
 			}}
+			// TODO: Check this is correct, set params correctly
 			db.Prepare(params.Rules{}, address, common.Address{}, &address2, vm.PrecompiledAddressesBerlin, al)
 
 			// check sender and dst

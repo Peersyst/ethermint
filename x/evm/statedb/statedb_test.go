@@ -1,7 +1,6 @@
 package statedb_test
 
 import (
-	"log"
 	"math/big"
 	"testing"
 
@@ -574,8 +573,6 @@ func CollectContractStorage(db *statedb.StateDB) statedb.Storage {
 		storage[key] = value
 		return true
 	})
-	log.Default().Printf("storage: %+v", storage)
-	log.Default().Printf("db: %+v", db)
 	return storage
 }
 

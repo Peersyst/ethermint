@@ -256,6 +256,46 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 	}
 }
 
+func (suite *EvmTestSuite) TestPush0() {
+	// Test contract:
+
+	// // SPDX-License-Identifier: Test
+	// pragma solidity ^0.8.20;
+	//
+	// contract Test {
+	//     event Hello(uint256 indexed world);
+	//
+	//     constructor() {
+	//         emit Hello(17);
+	//     }
+	// }
+
+	// {
+	// 	"linkReferences": {},
+	// 	"object": "6080604052348015600e575f80fd5b5060117f775a94827b8fd9b519d36cd827093c664f93347070a554f65e4a6f56cd73889860405160405180910390a2603e8060485f395ff3fe60806040525f80fdfea2646970667358221220d3ea6ce13d47c2b49693460c475a353731263c008a263e3acc2cfe6ef9a2b6b364736f6c63430008170033",
+	// 	"opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xE JUMPI PUSH0 DUP1 REVERT JUMPDEST POP PUSH1 0x11 PUSH32 0x775A94827B8FD9B519D36CD827093C664F93347070A554F65E4A6F56CD738898 PUSH1 0x40 MLOAD PUSH1 0x40 MLOAD DUP1 SWAP2 SUB SWAP1 LOG2 PUSH1 0x3E DUP1 PUSH1 0x48 PUSH0 CODECOPY PUSH0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 0xD3 0xEA PUSH13 0xE13D47C2B49693460C475A3537 BALANCE 0x26 EXTCODECOPY STOP DUP11 0x26 RETURNDATACOPY GASPRICE 0xCC 0x2C INVALID PUSH15 0xF9A2B6B364736F6C63430008170033 ",
+	// 	"sourceMap": "59:108:0:-:0;;;120:45;;;;;;;;;;155:2;149:9;;;;;;;;;;59:108;;;;;;"
+	// }
+
+	gasLimit := uint64(100000)
+	gasPrice := big.NewInt(1000000)
+
+	bytecode := common.FromHex("0x6080604052348015600e575f80fd5b5060117f775a94827b8fd9b519d36cd827093c664f93347070a554f65e4a6f56cd73889860405160405180910390a2603e8060485f395ff3fe60806040525f80fdfea2646970667358221220d3ea6ce13d47c2b49693460c475a353731263c008a263e3acc2cfe6ef9a2b6b364736f6c63430008170033")
+	tx := types.NewTx(suite.chainID, 1, nil, big.NewInt(0), gasLimit, gasPrice, nil, nil, bytecode, nil)
+	suite.SignTx(tx)
+
+	result, err := suite.handler(suite.ctx, tx)
+	suite.Require().NoError(err, "failed to handle eth tx msg")
+
+	var txResponse types.MsgEthereumTxResponse
+
+	err = proto.Unmarshal(result.Data, &txResponse)
+	suite.Require().NoError(err, "failed to decode result data")
+
+	suite.Require().Equal(len(txResponse.Logs), 1)
+	suite.Require().Equal(len(txResponse.Logs[0].Topics), 2)
+}
+
 func (suite *EvmTestSuite) TestHandlerLogs() {
 	// Test contract:
 
@@ -634,7 +674,7 @@ func (suite *EvmTestSuite) TestERC20TransferReverted() {
 }
 
 func (suite *EvmTestSuite) TestContractDeploymentRevert() {
-	intrinsicGas := uint64(134180)
+	intrinsicGas := uint64(150000)
 	testCases := []struct {
 		msg      string
 		gasLimit uint64

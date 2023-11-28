@@ -156,7 +156,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	blockHeight := big.NewInt(ctx.BlockHeight())
 	homestead := ethCfg.IsHomestead(blockHeight)
 	istanbul := ethCfg.IsIstanbul(blockHeight)
-	shanghai := ethCfg.ShanghaiTime != nil && ethCfg.IsShanghai(*ethCfg.ShanghaiTime)
+	shanghai := ethCfg.IsShanghai(uint64(ctx.BlockTime().Unix()))
 	var events sdk.Events
 
 	// Use the lowest priority of all the messages as the final one.

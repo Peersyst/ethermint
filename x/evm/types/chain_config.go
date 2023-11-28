@@ -16,6 +16,7 @@
 package types
 
 import (
+	"math"
 	"math/big"
 	"strings"
 
@@ -49,14 +50,12 @@ func (cc ChainConfig) EthereumConfig(chainID *big.Int) *params.ChainConfig {
 		ArrowGlacierBlock:       getBlockValue(cc.ArrowGlacierBlock),
 		GrayGlacierBlock:        getBlockValue(cc.GrayGlacierBlock),
 		MergeNetsplitBlock:      getBlockValue(cc.MergeNetsplitBlock),
-		ShanghaiTime:            nil,
-		CancunTime:              nil,
+		ShanghaiTime:            getTimeValue(cc.ShanghaiTime),
+		CancunTime:              getTimeValue(cc.CancunTime),
 		PragueTime:              nil,
 		TerminalTotalDifficulty: nil,
 		Ethash:                  nil,
 		Clique:                  nil,
-		// ShanghaiBlock:           getBlockValue(cc.ShanghaiBlock),
-		// CancunBlock:             getBlockValue(cc.CancunBlock),
 	}
 }
 
@@ -77,8 +76,8 @@ func DefaultChainConfig() ChainConfig {
 	arrowGlacierBlock := sdk.ZeroInt()
 	grayGlacierBlock := sdk.ZeroInt()
 	mergeNetsplitBlock := sdk.ZeroInt()
-	shanghaiBlock := sdk.ZeroInt()
-	cancunBlock := sdk.ZeroInt()
+	shanghaiTime := sdk.NewUint(0)
+	cancunTime := sdk.NewUint(0)
 
 	return ChainConfig{
 		HomesteadBlock:      &homesteadBlock,
@@ -98,8 +97,8 @@ func DefaultChainConfig() ChainConfig {
 		ArrowGlacierBlock:   &arrowGlacierBlock,
 		GrayGlacierBlock:    &grayGlacierBlock,
 		MergeNetsplitBlock:  &mergeNetsplitBlock,
-		ShanghaiBlock:       &shanghaiBlock,
-		CancunBlock:         &cancunBlock,
+		ShanghaiTime:        &shanghaiTime,
+		CancunTime:          &cancunTime,
 	}
 }
 
@@ -109,6 +108,15 @@ func getBlockValue(block *sdkmath.Int) *big.Int {
 	}
 
 	return block.BigInt()
+}
+
+
+func getTimeValue(time *sdkmath.Uint) *uint64 {
+	if time == nil || time.Equal(sdkmath.NewUint(math.MaxUint64))   {
+		return nil
+	}
+	timeUint64 := time.Uint64()
+	return &timeUint64
 }
 
 // Validate performs a basic validation of the ChainConfig params. The function will return an error
@@ -162,10 +170,10 @@ func (cc ChainConfig) Validate() error {
 	if err := validateBlock(cc.MergeNetsplitBlock); err != nil {
 		return errorsmod.Wrap(err, "MergeNetsplitBlock")
 	}
-	if err := validateBlock(cc.ShanghaiBlock); err != nil {
+	if err := validateTime(cc.ShanghaiTime); err != nil {
 		return errorsmod.Wrap(err, "ShanghaiBlock")
 	}
-	if err := validateBlock(cc.CancunBlock); err != nil {
+	if err := validateTime(cc.CancunTime); err != nil {
 		return errorsmod.Wrap(err, "CancunBlock")
 	}
 	// NOTE: chain ID is not needed to check config order
@@ -195,5 +203,15 @@ func validateBlock(block *sdkmath.Int) error {
 		)
 	}
 
+	return nil
+}
+
+func validateTime(time *sdkmath.Uint) error {
+	// nil value means that the fork has not yet been applied
+	if time == nil {
+		return nil
+	}
+
+	//TODO: Add more validations?
 	return nil
 }

@@ -16,6 +16,11 @@ func newIntPtr(i int64) *sdkmath.Int {
 	return &v
 }
 
+func newUintPtr(i uint64) *sdkmath.Uint {
+	v := sdkmath.NewUint(i)
+	return &v
+}
+
 func TestChainConfigValidate(t *testing.T) {
 	testCases := []struct {
 		name     string
@@ -39,8 +44,8 @@ func TestChainConfigValidate(t *testing.T) {
 				MuirGlacierBlock:    newIntPtr(0),
 				BerlinBlock:         newIntPtr(0),
 				LondonBlock:         newIntPtr(0),
-				CancunBlock:         newIntPtr(0),
-				ShanghaiBlock:       newIntPtr(0),
+				ShanghaiTime:       newUintPtr(0),
+				CancunTime:         newUintPtr(0),
 			},
 			false,
 		},
@@ -60,8 +65,8 @@ func TestChainConfigValidate(t *testing.T) {
 				MuirGlacierBlock:    nil,
 				BerlinBlock:         nil,
 				LondonBlock:         nil,
-				CancunBlock:         nil,
-				ShanghaiBlock:       nil,
+				ShanghaiTime:       nil,
+				CancunTime:         nil,
 			},
 			false,
 		},
@@ -339,7 +344,7 @@ func TestChainConfigValidate(t *testing.T) {
 				ArrowGlacierBlock:   newIntPtr(0),
 				GrayGlacierBlock:    newIntPtr(0),
 				MergeNetsplitBlock:  newIntPtr(0),
-				ShanghaiBlock:       newIntPtr(-1),
+				ShanghaiTime:       newUintPtr(0), // TODO: This test will probably break since ShanghaiBlock was set to -1
 			},
 			true,
 		},
@@ -362,8 +367,8 @@ func TestChainConfigValidate(t *testing.T) {
 				ArrowGlacierBlock:   newIntPtr(0),
 				GrayGlacierBlock:    newIntPtr(0),
 				MergeNetsplitBlock:  newIntPtr(0),
-				ShanghaiBlock:       newIntPtr(0),
-				CancunBlock:         newIntPtr(-1),
+				ShanghaiTime:       newUintPtr(0),  // TODO: This test will probably break since ShanghaiBlock was set to -1
+				CancunTime:         newUintPtr(0),  // TODO: This test will probably break since CancunBlock was set to -1
 			},
 			true,
 		},

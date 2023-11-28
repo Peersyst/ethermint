@@ -35,7 +35,7 @@ func (k *Keeper) GetEthIntrinsicGas(ctx sdk.Context, msg core.Message, cfg *para
 	height := big.NewInt(ctx.BlockHeight())
 	homestead := cfg.IsHomestead(height)
 	istanbul := cfg.IsIstanbul(height)
-	shanghai := cfg.IsShanghai(*cfg.ShanghaiTime) // TODO: Review this, probably is not correct
+	shanghai := cfg.ShanghaiTime != nil && cfg.IsShanghai(*cfg.ShanghaiTime) // TODO: Review this, probably is not correct
 
 	return core.IntrinsicGas(msg.Data, msg.AccessList, isContractCreation, homestead, istanbul, shanghai)
 }

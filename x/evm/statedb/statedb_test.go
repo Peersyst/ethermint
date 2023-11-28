@@ -441,7 +441,7 @@ func (suite *StateDBTestSuite) TestAccessList() {
 				StorageKeys: []common.Hash{value1},
 			}}
 			// TODO: Check this is correct, set params correctly
-			db.Prepare(params.Rules{}, address, common.Address{}, &address2, vm.PrecompiledAddressesBerlin, al)
+			db.Prepare(params.Rules{IsBerlin: true}, address, common.Address{}, &address2, vm.PrecompiledAddressesBerlin, al)
 
 			// check sender and dst
 			suite.Require().True(db.AddressInAccessList(address))

@@ -110,9 +110,8 @@ func getBlockValue(block *sdkmath.Int) *big.Int {
 	return block.BigInt()
 }
 
-
 func getTimeValue(time *sdkmath.Uint) *uint64 {
-	if time == nil || time.Equal(sdkmath.NewUint(math.MaxUint64))   {
+	if time == nil || time.Equal(sdkmath.NewUint(math.MaxUint64)) {
 		return nil
 	}
 	timeUint64 := time.Uint64()

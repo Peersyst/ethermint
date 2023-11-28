@@ -74,13 +74,13 @@ type StateDB struct {
 // New creates a new state from a given trie.
 func New(ctx sdk.Context, keeper Keeper, txConfig TxConfig) *StateDB {
 	return &StateDB{
-		keeper:       keeper,
-		ctx:          ctx,
-		stateObjects: make(map[common.Address]*stateObject),
-		journal:      newJournal(),
-		accessList:   newAccessList(),
+		keeper:           keeper,
+		ctx:              ctx,
+		stateObjects:     make(map[common.Address]*stateObject),
+		journal:          newJournal(),
+		accessList:       newAccessList(),
 		transientStorage: newTransientStorage(),
-		txConfig: txConfig,
+		txConfig:         txConfig,
 	}
 }
 

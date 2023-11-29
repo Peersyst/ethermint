@@ -35,8 +35,7 @@ func (k *Keeper) GetEthIntrinsicGas(ctx sdk.Context, msg core.Message, cfg *para
 	height := big.NewInt(ctx.BlockHeight())
 	homestead := cfg.IsHomestead(height)
 	istanbul := cfg.IsIstanbul(height)
-	// IsShanghai compares param time with Shanghai config time
-	shanghai := cfg.IsShanghai(uint64(ctx.BlockTime().Unix())) // TODO: Review this, probably is not correct
+	shanghai := cfg.IsShanghai(uint64(ctx.BlockTime().Unix()))
 
 	return core.IntrinsicGas(msg.Data, msg.AccessList, isContractCreation, homestead, istanbul, shanghai)
 }

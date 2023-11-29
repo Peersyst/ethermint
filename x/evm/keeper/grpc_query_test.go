@@ -403,6 +403,8 @@ func (suite *KeeperTestSuite) TestQueryTxLogs() {
 }
 
 func (suite *KeeperTestSuite) TestQueryParams() {
+	suite.enableShanghai = true
+	suite.SetupTest() // reset
 	ctx := sdk.WrapSDKContext(suite.ctx)
 	expParams := types.DefaultParams()
 
@@ -504,6 +506,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 		expPass         bool
 		expGas          uint64
 		enableFeemarket bool
+		enableShanghai  bool
 	}{
 		// should success, because transfer value is zero
 		{
@@ -513,6 +516,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			},
 			true,
 			ethparams.TxGasContractCreation,
+			false,
 			false,
 		},
 		// should success, because transfer value is zero
@@ -524,6 +528,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			true,
 			ethparams.TxGas,
 			false,
+			false,
 		},
 		// should fail, because the default From address(zero address) don't have fund
 		{
@@ -534,13 +539,14 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			false,
 			0,
 			false,
+			false,
 		},
 		// should success, enough balance now
 		{
 			"enough balance",
 			func() {
 				args = types.TransactionArgs{To: &common.Address{}, From: &suite.address, Value: (*hexutil.Big)(big.NewInt(100))}
-			}, false, 0, false,
+			}, false, 0, false, false,
 		},
 		// should success, because gas limit lower than 21000 is ignored
 		{
@@ -550,6 +556,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			},
 			true,
 			ethparams.TxGas,
+			false,
 			false,
 		},
 		// should fail, invalid gas cap
@@ -562,6 +569,24 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			false,
 			0,
 			false,
+			false,
+		},
+		// shanghai estimate gas of an erc20 contract deployment, the exact gas number is checked with geth
+		{
+			"contract deployment w/ shanghai",
+			func() {
+				ctorArgs, err := types.ERC20Contract.ABI.Pack("", &suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
+				suite.Require().NoError(err)
+				data := append(types.ERC20Contract.Bin, ctorArgs...)
+				args = types.TransactionArgs{
+					From: &suite.address,
+					Data: (*hexutil.Bytes)(&data),
+				}
+			},
+			true,
+			1187108,
+			false,
+			true,
 		},
 		// estimate gas of an erc20 contract deployment, the exact gas number is checked with geth
 		{
@@ -578,6 +603,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			true,
 			1186778,
 			false,
+			false,
 		},
 		// estimate gas of an erc20 transfer, the exact gas number is checked with geth
 		{
@@ -592,6 +618,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			true,
 			51880,
 			false,
+			false,
 		},
 		// repeated tests with enableFeemarket
 		{
@@ -602,6 +629,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			true,
 			ethparams.TxGas,
 			true,
+			false,
 		},
 		{
 			"not enough balance w/ enableFeemarket",
@@ -611,6 +639,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			false,
 			0,
 			true,
+			false,
 		},
 		{
 			"enough balance w/ enableFeemarket",
@@ -620,6 +649,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			false,
 			0,
 			true,
+			false,
 		},
 		{
 			"gas exceed allowance w/ enableFeemarket",
@@ -629,6 +659,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			true,
 			ethparams.TxGas,
 			true,
+			false,
 		},
 		{
 			"gas exceed global allowance w/ enableFeemarket",
@@ -639,6 +670,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			false,
 			0,
 			true,
+			false,
 		},
 		{
 			"contract deployment w/ enableFeemarket",
@@ -654,6 +686,23 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			true,
 			1186778,
 			true,
+			false,
+		},
+		{
+			"contract deployment w/ enableFeemarket w/ shanghai",
+			func() {
+				ctorArgs, err := types.ERC20Contract.ABI.Pack("", &suite.address, sdkmath.NewIntWithDecimal(1000, 18).BigInt())
+				suite.Require().NoError(err)
+				data := append(types.ERC20Contract.Bin, ctorArgs...)
+				args = types.TransactionArgs{
+					From: &suite.address,
+					Data: (*hexutil.Bytes)(&data),
+				}
+			},
+			true,
+			1187108,
+			true,
+			true,
 		},
 		{
 			"erc20 transfer w/ enableFeemarket",
@@ -667,6 +716,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			true,
 			51880,
 			true,
+			false,
 		},
 		{
 			"contract creation but 'create' param disabled",
@@ -685,6 +735,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			false,
 			0,
 			false,
+			false,
 		},
 		{
 			"specified gas in args higher than ethparams.TxGas (21,000)",
@@ -696,6 +747,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			},
 			true,
 			ethparams.TxGas,
+			false,
 			false,
 		},
 		{
@@ -710,6 +762,7 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			true,
 			ethparams.TxGas,
 			false,
+			false,
 		},
 		{
 			"invalid args - specified both gasPrice and maxFeePerGas",
@@ -723,12 +776,14 @@ func (suite *KeeperTestSuite) TestEstimateGas() {
 			false,
 			0,
 			false,
+			false,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			suite.enableFeemarket = tc.enableFeemarket
+			suite.enableShanghai = tc.enableShanghai
 			suite.SetupTest()
 			gasCap = 25_000_000
 			tc.malleate()

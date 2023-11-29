@@ -516,6 +516,8 @@ func (suite *KeeperTestSuite) TestResetGasMeterAndConsumeGas() {
 }
 
 func (suite *KeeperTestSuite) TestEVMConfig() {
+	suite.enableShanghai = true
+	suite.SetupTest() // reset
 	proposerAddress := suite.ctx.BlockHeader().ProposerAddress
 	cfg, err := suite.app.EvmKeeper.EVMConfig(suite.ctx, proposerAddress, big.NewInt(9000))
 	suite.Require().NoError(err)

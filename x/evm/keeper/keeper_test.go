@@ -71,6 +71,7 @@ type KeeperTestSuite struct {
 
 	enableFeemarket  bool
 	enableLondonHF   bool
+	enableShanghai   bool
 	mintFeeCollector bool
 	denom            string
 }
@@ -132,18 +133,27 @@ func (suite *KeeperTestSuite) SetupAppWithT(checkTx bool, t require.TestingT) {
 			feemarketGenesis.Params.NoBaseFee = true
 		}
 		genesis[feemarkettypes.ModuleName] = app.AppCodec().MustMarshalJSON(feemarketGenesis)
+		evmGenesis := types.DefaultGenesisState()
 		if !suite.enableLondonHF {
-			evmGenesis := types.DefaultGenesisState()
 			maxInt := sdkmath.NewInt(math.MaxInt64)
-			minUint := sdkmath.NewUint(0)
+			maxUint := sdkmath.NewUint(math.MaxUint64)
 			evmGenesis.Params.ChainConfig.LondonBlock = &maxInt
 			evmGenesis.Params.ChainConfig.ArrowGlacierBlock = &maxInt
 			evmGenesis.Params.ChainConfig.GrayGlacierBlock = &maxInt
 			evmGenesis.Params.ChainConfig.MergeNetsplitBlock = &maxInt
+			evmGenesis.Params.ChainConfig.ShanghaiTime = &maxUint
+			evmGenesis.Params.ChainConfig.CancunTime = &maxUint
+		}
+		if !suite.enableShanghai {
+			maxUint := sdkmath.NewUint(math.MaxUint64)
+			evmGenesis.Params.ChainConfig.ShanghaiTime = &maxUint
+			evmGenesis.Params.ChainConfig.CancunTime = &maxUint
+		} else {
+			minUint := sdkmath.NewUint(0)
 			evmGenesis.Params.ChainConfig.ShanghaiTime = &minUint
 			evmGenesis.Params.ChainConfig.CancunTime = &minUint
-			genesis[types.ModuleName] = app.AppCodec().MustMarshalJSON(evmGenesis)
 		}
+		genesis[types.ModuleName] = app.AppCodec().MustMarshalJSON(evmGenesis)
 		return genesis
 	})
 

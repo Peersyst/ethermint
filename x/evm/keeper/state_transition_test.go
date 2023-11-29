@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/big"
 
@@ -180,6 +181,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 		isContractCreation bool
 		noError            bool
 		expGas             uint64
+		enableShanghai     bool
 	}{
 		{
 			"no data, no accesslist, not contract creation, not homestead, not istanbul",
@@ -189,6 +191,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			false,
 			true,
 			params.TxGas,
+			true,
 		},
 		{
 			"with one zero data, no accesslist, not contract creation, not homestead, not istanbul",
@@ -198,15 +201,27 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			false,
 			true,
 			params.TxGas + params.TxDataZeroGas*1,
+			true,
 		},
 		{
-			"with one non zero data, no accesslist, not contract creation, not homestead, not istanbul",
+			"with one non zero data, no accesslist, not contract creation, not homestead, not istanbul, not shanghai",
 			[]byte{1},
 			nil,
 			1,
 			true,
 			true,
 			params.TxGas + params.TxDataNonZeroGasFrontier*1,
+			false,
+		},
+		{
+			"with one non zero data, no accesslist, not contract creation, not homestead, not istanbul, shanghai",
+			[]byte{1},
+			nil,
+			1,
+			true,
+			true,
+			params.TxGas + params.TxDataNonZeroGasFrontier*1 + 2,
+			true,
 		},
 		{
 			"no data, one accesslist, not contract creation, not homestead, not istanbul",
@@ -218,6 +233,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			false,
 			true,
 			params.TxGas + params.TxAccessListAddressGas,
+			true,
 		},
 		{
 			"no data, one accesslist with one storageKey, not contract creation, not homestead, not istanbul",
@@ -229,6 +245,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			false,
 			true,
 			params.TxGas + params.TxAccessListAddressGas + params.TxAccessListStorageKeyGas*1,
+			true,
 		},
 		{
 			"no data, no accesslist, is contract creation, is homestead, not istanbul",
@@ -238,6 +255,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			true,
 			true,
 			params.TxGasContractCreation,
+			true,
 		},
 		{
 			"with one zero data, no accesslist, not contract creation, is homestead, is istanbul",
@@ -247,11 +265,14 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			false,
 			true,
 			params.TxGas + params.TxDataNonZeroGasEIP2028*1,
+			true,
 		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(fmt.Sprintf("Case %s", tc.name), func() {
+			log.Default().Printf("Case %s\n", tc.name)
+			suite.enableShanghai = tc.enableShanghai
 			suite.SetupTest() // reset
 
 			params := suite.app.EvmKeeper.GetParams(suite.ctx)
@@ -282,7 +303,7 @@ func (suite *KeeperTestSuite) TestGetEthIntrinsicGas() {
 			} else {
 				suite.Require().Error(err)
 			}
-
+			log.Default().Printf("expected %v got %v\n", tc.expGas, gas)
 			suite.Require().Equal(tc.expGas, gas)
 		})
 	}

@@ -13,18 +13,19 @@ import (
 	"github.com/evmos/ethermint/encoding"
 	v4 "github.com/evmos/ethermint/x/evm/migrations/v4"
 	v4types "github.com/evmos/ethermint/x/evm/migrations/v4/types"
+	v6types "github.com/evmos/ethermint/x/evm/migrations/v6/types"
 )
 
 type mockSubspace struct {
-	ps types.Params
+	ps v6types.Params
 }
 
-func newMockSubspace(ps types.Params) mockSubspace {
+func newMockSubspace(ps v6types.Params) mockSubspace {
 	return mockSubspace{ps: ps}
 }
 
 func (ms mockSubspace) GetParamSetIfExists(ctx sdk.Context, ps types.LegacyParams) {
-	*ps.(*types.Params) = ms.ps
+	*ps.(*v6types.Params) = ms.ps
 }
 
 func TestMigrate(t *testing.T) {
@@ -36,24 +37,24 @@ func TestMigrate(t *testing.T) {
 	ctx := testutil.DefaultContext(storeKey, tKey)
 	kvStore := ctx.KVStore(storeKey)
 
-	legacySubspace := newMockSubspace(types.DefaultParams())
+	legacySubspace := newMockSubspace(v6types.DefaultParams())
 	require.NoError(t, v4.MigrateStore(ctx, storeKey, legacySubspace, cdc))
 
 	// Get all the new parameters from the kvStore
 	var evmDenom string
-	bz := kvStore.Get(types.ParamStoreKeyEVMDenom)
+	bz := kvStore.Get(v6types.ParamStoreKeyEVMDenom)
 	evmDenom = string(bz)
 
-	allowUnprotectedTx := kvStore.Has(types.ParamStoreKeyAllowUnprotectedTxs)
-	enableCreate := kvStore.Has(types.ParamStoreKeyEnableCreate)
-	enableCall := kvStore.Has(types.ParamStoreKeyEnableCall)
+	allowUnprotectedTx := kvStore.Has(v6types.ParamStoreKeyAllowUnprotectedTxs)
+	enableCreate := kvStore.Has(v6types.ParamStoreKeyEnableCreate)
+	enableCall := kvStore.Has(v6types.ParamStoreKeyEnableCall)
 
 	var chainCfg v4types.V4ChainConfig
-	bz = kvStore.Get(types.ParamStoreKeyChainConfig)
+	bz = kvStore.Get(v6types.ParamStoreKeyChainConfig)
 	cdc.MustUnmarshal(bz, &chainCfg)
 
 	var extraEIPs v4types.ExtraEIPs
-	bz = kvStore.Get(types.ParamStoreKeyExtraEIPs)
+	bz = kvStore.Get(v6types.ParamStoreKeyExtraEIPs)
 	cdc.MustUnmarshal(bz, &extraEIPs)
 	require.Equal(t, []int64(nil), extraEIPs.EIPs)
 

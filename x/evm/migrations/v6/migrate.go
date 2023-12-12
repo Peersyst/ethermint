@@ -5,6 +5,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	sdkmath "cosmossdk.io/math"
 	v6types "github.com/evmos/ethermint/x/evm/migrations/v6/types"
 	"github.com/evmos/ethermint/x/evm/types"
 )
@@ -29,6 +30,7 @@ func MigrateStore(
 	params.EvmDenom = v6params.EvmDenom
 	params.EnableCreate = v6params.EnableCreate
 	params.EnableCall = v6params.EnableCall
+	shanghaiTime := sdkmath.NewUint(0)
 	params.ChainConfig = types.ChainConfig{
 		HomesteadBlock:      v6params.ChainConfig.HomesteadBlock,
 		DAOForkBlock:        v6params.ChainConfig.DAOForkBlock,
@@ -47,7 +49,7 @@ func MigrateStore(
 		ArrowGlacierBlock:   v6params.ChainConfig.ArrowGlacierBlock,
 		GrayGlacierBlock:    v6params.ChainConfig.GrayGlacierBlock,
 		MergeNetsplitBlock:  v6params.ChainConfig.MergeNetsplitBlock,
-		ShanghaiTime:        nil,
+		ShanghaiTime:        &shanghaiTime,
 		CancunTime:          nil,
 	}
 	params.ExtraEIPs = v6params.ExtraEIPs
